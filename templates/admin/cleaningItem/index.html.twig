@@ -1,0 +1,162 @@
+{% extends 'admin/base.html.twig' %}
+{% block title %}{{ 'cleaningItem.title'|trans }}{% endblock %}
+
+{% block page_content %}
+
+    {% embed 'admin/_partials/_default_table_list.html.twig' %}
+
+        {% block icon_list %}
+            <i class="flaticon-map"></i>
+        {% endblock %}
+
+        {% block caption_subject %}
+            {{ 'resource.caption'|trans({'%resourceName%': 'cleaningItem.title'|trans, '%nbResults%' : cleaningItems.nbResults}) }}
+        {% endblock %}
+
+        {% block head_tools_actions %}
+            <li class="m-portlet__nav-item">
+                <a href="{{ path('admin_cleaning_item_new') ~ pagination.buildQuery }}"
+                   class="btn btn-accent m-btn m-btn--custom m-btn--icon">
+                    <span><i class="la la-plus"></i><span> {{ 'cleaningItem.actions.new'|trans }}</span></span>
+                </a>
+            </li>
+        {% endblock %}
+        {% block head_tools_dropdown %}{% endblock %}
+
+        {% block filters_actions %}
+            <div class="row m--margin-bottom-20">
+                <div class="col-lg-3 m--margin-bottom-10-tablet-and-mobile">
+                    <label for="search">
+                        {{ 'resource.filters.search'|trans }}:
+                    </label>
+                    <input type="text" class="form-control m-input m-input--solid" data-col-index="0"
+                           placeholder="{{ 'resource.filters.search'|trans }}" name="search" id="search"
+                           value="{% if app.request.query.has('search') %}{{ app.request.query.get('search') }}{% endif %}">
+                </div>
+                <div class="col-lg-3 m--margin-bottom-10-tablet-and-mobile">
+                    <label for="category">
+                        {{ 'cleaningItemCategory.title_single'|trans }}:
+                    </label>
+                    <select class="form-control m-input" name="category" id="category" onchange="submit();">
+                        <option value=""></option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}"
+                                    {% if app.request.query.has('category') %}{% if app.request.query.get('category') == category.id %}selected{% endif %}{% endif %}>{{ category.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="m-separator m-separator--md m-separator--dashed"></div>
+            <div class="row m--margin-bottom-20">
+                <div class="col-lg-12">
+                    <button type="submit" class="btn btn-brand m-btn m-btn--icon">
+                        <span><i class="la la-search"></i><span>{{ 'resource.filters.search'|trans }}</span></span>
+                    </button>
+                    &nbsp;&nbsp;
+                    <a href="{{ path('admin_cleaning_item_index') }}"
+                       class="btn btn-secondary m-btn m-btn--icon">
+                        <span><i class="la la-close"></i><span>{{ 'resource.actions.items.reset'|trans }}</span></span>
+                    </a>
+                </div>
+            </div>
+        {% endblock %}
+
+        {% block table_tr_th %}
+            <tr>
+                <th>ID</th>
+                <th>
+                    <a href="{{ path('admin_cleaning_item_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('title') }}">
+                        {{ 'resource.fields.title'|trans }}
+                    </a>
+                </th>
+                <th>
+                    {{ 'cleaningItem.fields.amount'|trans }}
+                </th>
+                <th>
+                    <a href="{{ path('admin_cleaning_item_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('cleaningItemCategory.title') }}">
+                        {{ 'cleaningItemCategory.title_single'|trans }}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ path('admin_cleaning_item_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('displayOrder') }}">
+                        {{ 'cleaningItem.fields.displayOrder'|trans }}
+                    </a>
+                </th>
+                <th>
+                    {{ 'cleaningItem.fields.maxQuantity'|trans }}
+                </th>
+                <th>
+                    <a href="{{ path('admin_cleaning_item_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('isEnabled') }}">
+                        {{ 'resource.toglleable.is_enabled_title'|trans }}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ path('admin_cleaning_item_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('createdAt') }}">
+                        {{ 'resource.timestampable.createdAt'|trans }}
+                    </a>
+                </th>
+                <th>{{ 'resource.actions.title'|trans }}</th>
+            </tr>
+        {% endblock %}
+
+        {% block table_tr_td %}
+            {% for cleaningItem in cleaningItems %}
+                <tr>
+                    <td>{{ cleaningItem.id }}</td>
+                    <td>{{ cleaningItem.title }}</td>
+                    <td>{{ cleaningItem.amount|number_format }}</td>
+                    <td>{{ cleaningItem.cleaningItemCategory.title }}</td>
+                    <td>{{ cleaningItem.displayOrder }}</td>
+                    <td>{{ cleaningItem.maxQuantity }}</td>
+                    <td>
+                        {% if cleaningItem.isEnabled == '1' %}
+                            <span class="m-badge  m-badge--success m-badge--wide">
+                                <i class="fa fa-check"></i>
+                            </span>
+                        {% else %}
+                            <span class="m-badge  m-badge--danger m-badge--wide">
+                                <i class="fa fa-remove"></i>
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ cleaningItem.createdAt|date('d/m/Y H:i') }}</td>
+                    <td>
+                        {% embed 'admin/_partials/_actions_btn_group.html.twig' %}
+                            {% block li_actions %}
+                                <a class="dropdown-item" href="javascript:;" data-toggle="modal"
+                                   data-target="#modalConfirmation"
+                                   data-path="{{ path('admin_cleaning_item_delete', {id: cleaningItem.id})|escape }}"
+                                   data-crf="{{ form_widget(delete_forms[cleaningItem.id]._token)|escape }}"
+                                >
+                                    <i class="fa fa-trash"></i> {{ 'resource.actions.items.delete'|trans }}
+                                </a>
+                            {% endblock %}
+                        {% endembed %}
+                        <a href="{{ path('admin_cleaning_item_edit', { id: cleaningItem.id }) ~ pagination.buildQuery }}"
+                           class="m-portlet__nav-link btn m-btn m-btn--hover-accent m-btn--icon m-btn--icon-only m-btn--pill"
+                           title="{{ 'resource.actions.items.edit'|trans }}"> <i class="la la-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endblock %}
+
+        {% block list_info %}
+            {{ 'resource.pagination.list_info'|trans({
+                '%currentPageOffsetStart%': cleaningItems.currentPageOffsetStart,
+                '%currentPageOffsetEnd%': cleaningItems.currentPageOffsetEnd,
+                '%nbResults%': cleaningItems.nbResults
+            }) }}
+        {% endblock %}
+
+        {% block list_pagination %}
+            {{ pagerfanta(cleaningItems, 'twitter_bootstrap4',{
+                routeName: 'admin_cleaning_item_index',
+                routeParams: app.request.query.all
+            }) }}
+        {% endblock %}
+
+    {% endembed %}
+
+{% endblock %}

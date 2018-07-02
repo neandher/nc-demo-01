@@ -1,0 +1,309 @@
+{% extends 'admin/base.html.twig' %}
+{% block title %}{{ 'schedule.title'|trans }}{% endblock %}
+
+{% block page_content %}
+
+    {% embed 'admin/_partials/_default_table_list.html.twig' %}
+
+        {% block icon_list %}
+            <i class="flaticon-time"></i>
+        {% endblock %}
+
+        {% block caption_subject %}
+            {{ 'resource.caption'|trans({'%resourceName%': 'schedule.title'|trans, '%nbResults%' : schedules.nbResults}) }}
+        {% endblock %}
+
+        {% block head_tools_actions %}{% endblock %}
+        {% block head_tools_dropdown %}{% endblock %}
+
+        {% block filters_actions %}
+            <div class="row m--margin-bottom-20">
+                <div class="col-lg-3 m--margin-bottom-10-tablet-and-mobile">
+                    <label for="search">
+                        {{ 'resource.filters.search'|trans }}:
+                    </label>
+                    <input type="text" class="form-control m-input m-input--solid" data-col-index="0"
+                           placeholder="{{ 'resource.filters.search'|trans }}" name="search" id="search"
+                           value="{% if app.request.query.has('search') %}{{ app.request.query.get('search') }}{% endif %}">
+                </div>
+                <div class="col-lg-3 m--margin-bottom-10-tablet-and-mobile">
+                    <label>
+                        {{ 'resource.filters.date'|trans }}:
+                    </label>
+                    <div class="input-daterange input-group" id="m_datepicker">
+                        <input type="text" class="form-control m-input input_datetimepicker" name="start_date" readonly
+                               placeholder="{{ 'resource.filters.start_date'|trans }}"
+                               value="{% if app.request.query.has('start_date') %}{{ app.request.query.get('start_date') }}{% endif %}"/>
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="la la-ellipsis-h"></i>
+                            </span>
+                        </div>
+                        <input type="text" class="form-control m-input input_datetimepicker" name="end_date" readonly
+                               placeholder="{{ 'resource.filters.end_date'|trans }}"
+                               value="{% if app.request.query.has('end_date') %}{{ app.request.query.get('end_date') }}{% endif %}"/>
+                    </div>
+                </div>
+                <div class="col-lg-3 m--margin-bottom-10-tablet-and-mobile">
+                    <label for="state">
+                        {{ 'schedule.fields.state'|trans }}:
+                    </label>
+                    <select class="form-control m-input" name="state" id="state" onchange="submit();">
+                        <option value=""></option>
+                        <option value="{{ constant('App\\Entity\\Schedule::STATE_NEW') }}"
+                                {% if app.request.query.has('state') %}{% if app.request.query.get('state') == constant('App\\Entity\\Schedule::STATE_NEW') %}selected{% endif %}{% endif %}>
+                            {{ ('schedule.states.'~constant('App\\Entity\\Schedule::STATE_NEW'))|trans }}
+                        </option>
+                        <option value="{{ constant('App\\Entity\\Schedule::STATE_CONFIRMED') }}"
+                                {% if app.request.query.has('state') %}{% if app.request.query.get('state') == constant('App\\Entity\\Schedule::STATE_CONFIRMED') %}selected{% endif %}{% endif %}>
+                            {{ ('schedule.states.'~constant('App\\Entity\\Schedule::STATE_CONFIRMED'))|trans }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-lg-3 m--margin-bottom-10-tablet-and-mobile">
+                    <label for="customer">
+                        {{ 'customer.title_single'|trans }}:
+                    </label>
+                    <select class="form-control m-input m-select2" name="customer" id="customer" onchange="submit();">
+                        <option value=""></option>
+                        {% for customer in customers %}
+                            <option value="{{ customer.id }}"
+                                    {% if app.request.query.has('customer') %}{% if app.request.query.get('customer') == customer.id %}selected{% endif %}{% endif %}>{{ customer.fullName }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="m-separator m-separator--md m-separator--dashed"></div>
+            <div class="row m--margin-bottom-20">
+                <div class="col-lg-3 m--margin-bottom-10-tablet-and-mobile">
+                    <label for="num_items">
+                        {{ 'resource.filters.num_items'|trans }}:
+                    </label>
+                    <input type="number" class="form-control col-md-4"
+                           name="num_items" id="num_items"
+                           value="{{ app.request.query.get('num_items', pagination.routeParams('num_items')) }}"
+                           min="5">
+                </div>
+            </div>
+            <div class="m-separator m-separator--md m-separator--dashed"></div>
+            <div class="row m--margin-bottom-20">
+                <div class="col-lg-12">
+                    <button type="submit" class="btn btn-brand m-btn m-btn--icon">
+                        <span><i class="la la-search"></i><span>{{ 'resource.filters.search'|trans }}</span></span>
+                    </button>
+                    &nbsp;&nbsp;
+                    <a href="{{ path('admin_schedule_index') }}"
+                       class="btn btn-secondary m-btn m-btn--icon">
+                        <span><i class="la la-close"></i><span>{{ 'resource.actions.items.reset'|trans }}</span></span>
+                    </a>
+                </div>
+            </div>
+        {% endblock %}
+
+        {% block table_tr_th %}
+            <tr>
+                <th>ID</th>
+                <th>
+                    <a href="{{ path('admin_schedule_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('firstName') }}">
+                        {{ 'customer.title_single'|trans }}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ path('admin_schedule_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('state') }}">
+                        {{ 'schedule.fields.state'|trans }}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ path('admin_schedule_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('startDateAt') }}">
+                        {{ 'schedule.fields.startDateAt'|trans }}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ path('admin_schedule_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('endDateAt') }}">
+                        {{ 'schedule.fields.endDateAt'|trans }}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ path('admin_schedule_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('promotionalCoupon.code') }}">
+                        {{ 'promotionCoupon.title_single'|trans }}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ path('admin_schedule_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('itemsTotal') }}">
+                        {{ 'schedule.fields.itemsTotal'|trans }}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ path('admin_schedule_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('createdAt') }}">
+                        {{ 'resource.timestampable.createdAt'|trans }}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ path('admin_schedule_index') ~ pagination.buildQuery('sorting') ~ pagination.sortingFieldQuery('updatedAt') }}">
+                        {{ 'resource.timestampable.updatedAt'|trans }}
+                    </a>
+                </th>
+                <th>{{ 'resource.actions.title'|trans }}</th>
+            </tr>
+        {% endblock %}
+
+        {% block table_tr_td %}
+            {% for schedule in schedules %}
+                <tr>
+                    <td>{{ schedule.id }}</td>
+                    <td>
+                        <a href="{{ path('admin_customer_edit', {'id': schedule.customer.id}) }}">
+                            {{ schedule.customer.fullName }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if schedule.state == constant('App\\Entity\\Schedule::STATE_NEW') %}
+                            <span class="m-badge  m-badge--info m-badge--wide">
+                                {{ ('schedule.states.'~constant('App\\Entity\\Schedule::STATE_NEW'))|trans|lower }}
+                            </span>
+                        {% elseif schedule.state == constant('App\\Entity\\Schedule::STATE_CONFIRMED') %}
+                            <span class="m-badge  m-badge--success m-badge--wide">
+                                {{ ('schedule.states.'~constant('App\\Entity\\Schedule::STATE_CONFIRMED'))|trans|lower }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ schedule.startDateAt|date('d/m/Y H:i') }}</td>
+                    <td>{{ schedule.endDateAt|date('d/m/Y H:i') }}</td>
+                    <td>
+                        {% if schedule.promotionCoupon %}
+                            <a href="{{ path('admin_promotion_coupon_edit', {'id' : schedule.promotionCoupon.id}) }}">
+                                {{ schedule.promotionCoupon.code }}
+                            </a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>${{ schedule.itemsTotal|number_format }}</td>
+                    <td>{{ schedule.createdAt|date('d/m/Y H:i') }}</td>
+                    <td>{{ schedule.updatedAt|date('d/m/Y H:i') }}</td>
+                    <td>
+                        <a href="javascript:;"
+                           class="m-portlet__nav-link btn m-btn m-btn--hover-accent m-btn--icon m-btn--icon-only m-btn--pill"
+                           data-toggle="modal"
+                           data-target="#modalConfirmation"
+                           data-path="{{ path('admin_schedule_delete', {id: schedule.id})|escape }}"
+                           data-crf="{{ form_widget(delete_forms[schedule.id]._token)|escape }}"
+                           title="{{ 'resource.actions.items.delete'|trans }}"
+                        >
+                            <i class="fa fa-trash"></i>
+                        </a>
+                        <a href="{{ path('admin_schedule_edit', { id: schedule.id }) ~ pagination.buildQuery }}"
+                           class="m-portlet__nav-link btn m-btn m-btn--hover-accent m-btn--icon m-btn--icon-only m-btn--pill"
+                           title="{{ 'resource.actions.items.edit'|trans }}"> <i class="la la-edit"></i>
+                        </a>
+                        <a href="javascript:;" data-id="{{ schedule.id }}"
+                           class="m-portlet__nav-link btn m-btn m-btn--hover-accent m-btn--icon m-btn--icon-only m-btn--pill scheduleItemsShow"
+                           title="View"> <i class="fa fa-search"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endblock %}
+
+        {% block list_info %}
+            {{ 'resource.pagination.list_info'|trans({
+                '%currentPageOffsetStart%': schedules.currentPageOffsetStart,
+                '%currentPageOffsetEnd%': schedules.currentPageOffsetEnd,
+                '%nbResults%': schedules.nbResults
+            }) }}
+        {% endblock %}
+
+        {% block list_pagination %}
+            {{ pagerfanta(schedules, 'twitter_bootstrap4',{
+                routeName: 'admin_schedule_index',
+                routeParams: app.request.query.all
+            }) }}
+        {% endblock %}
+
+    {% endembed %}
+
+    <!-- modal schedule items -->
+    <div class="modal fade" id="modalScheduleItems" tabindex="-1" role="basic"
+         aria-labelledby="modalScheduleItemsLabel">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">{{ 'scheduleItems.title'|trans }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="m-scrollable" data-axis="x" data-scrollable="true">
+                        <table class="table table-bordered m-table">
+                            <thead>
+                            <tr>
+                                <th>{{ 'cleaningItem.title_single'|trans }}</th>
+                                <th>{{ 'scheduleItems.fields.unitPrice'|trans }}</th>
+                                <th>{{ 'scheduleItems.fields.quantity'|trans }}</th>
+                                <th>{{ 'scheduleItems.fields.total'|trans }}</th>
+                            </tr>
+                            </thead>
+                            <tbody class="showAjaxItems"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end modal phone number -->
+
+{% endblock %}
+
+{% block javascripts %}
+    {% embed 'admin/_partials/_block_javascripts.html.twig' %}
+        {% block javascripts_page_snippets %}
+            <script src="{{ asset('assets/widgets/bootstrap-datetimepicker.js') }}"></script>
+            <script src="{{ asset('assets/widgets/select2.js') }}"></script>
+
+            <script type="text/javascript">
+
+                $('.scheduleItemsShow').click(function () {
+
+                    $('#modalScheduleItems').modal();
+
+                    var $modalBody = $('.showAjaxItems');
+
+                    $modalBody.html('<tr><td colspan="5">loading...</td><tr>');
+
+                    $.get("{{ path('admin_schedule_items')|escape('js') }}", {'id': $(this).data('id')}, function (data) {
+
+                        $modalBody.html('');
+
+                        $.each(data, function (key, value) {
+
+                            console.log(value);
+
+                            $.each(value.scheduleItems, function (_key, _value) {
+
+                                var item = _value.cleaningItem.title;
+                                var category = _value.cleaningItem.cleaningItemCategory.title;
+                                var option = _value.cleaningItemOption != null ? ' - ' + _value.cleaningItemOption.title : '';
+                                var unitPrice = _value.unitPrice;
+                                var quantity = _value.quantity;
+                                var total = _value.total;
+
+                                $modalBody.append('<tr><td>' + item + option + '</td><td>$' + unitPrice + '</td><td>' + quantity + '</td><td>$' + total + '</td></tr>');
+                            });
+
+                            var subTotal = value.itemsSubTotal;
+                            var discount = value.itemsDiscount != null ? value.itemsDiscount : '0.00';
+
+                            $modalBody.append('<tr><td colspan="3" align="right" style="font-weight: 500;">{{ 'schedule.fields.subTotal'|trans }}: </td><td style="font-weight: 500;">$' + subTotal + '</td></tr>');
+                            $modalBody.append('<tr><td colspan="3" align="right" style="font-weight: 500;">{{ 'schedule.fields.discount'|trans }}: </td><td style="font-weight: 500;">$' + discount + '</td></tr>');
+                            $modalBody.append('<tr><td colspan="3" align="right" style="font-weight: 500;">{{ 'scheduleItems.fields.total'|trans }}: </td><td style="font-weight: 500;">$' + value.itemsTotal + '</td></tr>');
+                        });
+                    });
+                });
+
+            </script>
+        {% endblock %}
+    {% endembed %}
+{% endblock %}

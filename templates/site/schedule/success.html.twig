@@ -1,0 +1,27 @@
+{% extends 'site/base.html.twig' %}
+
+{% block page_content %}
+    <div class="row">
+        <div class="col-xl-12">
+            <!--Begin::Main Portlet-->
+            <div class="m-portlet">
+                <!--begin: Portlet Head-->
+                <div class="m-portlet__body">
+                    <div class="m-section__content">
+                        <div class="m-alert m-alert--icon m-alert--outline alert alert-success alert-dismissible fade show"
+                             role="alert">
+                            <div class="m-alert__icon">
+                                <i class="la la-check-circle"></i>
+                            </div>
+                            <div class="m-alert__text">
+                                <strong>Well done!</strong>
+                                We send you a email with details of you appointment.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--End::Main Portlet-->
+        </div>
+    </div>
+{% endblock %}
